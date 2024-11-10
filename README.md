@@ -12,6 +12,20 @@ might be appropriate for modeling their relationship.
 
 ## Solution
 
+### Run below command to download the data.
+
+```
+make data
+```
+
+### Run below command to setup the environment
+
+```
+conda env create --name dev -f dev.yml
+conda activate dev
+```
+
+
 ### Run below command to get the o/p
 
 ```
