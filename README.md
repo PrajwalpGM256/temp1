@@ -10,7 +10,19 @@ You can get the data directly from the "data-raw" directory in the [ggplot2 gith
 Visualize the relationship between "price" and "carat" and comment on the type of model that 
 might be appropriate for modeling their relationship.
 
+## Solution
 
+### Run below command to get the o/p
+
+```
+make quest1
+```
+
+Below is the op you get:
+
+![alt text](<figs/Q1_Price vs Carat.png>)
+
+The relationship between price and carat appears to be non-linear and possibly exponential. This suggests that a polynomial regression or a model involving logarithmic transformation of carat might be appropriate.
 
 ## Question 2
 
@@ -18,6 +30,23 @@ Investigate logarithmic transformations to see if you can find a more appropriat
 between "price" and "carat" for univariate linear regression.
 Use data visualization to help justify your choice of model.
 Use explained variance score as a metric for model performance, and report training scores based on the entire dataset.
+
+## Solution
+
+### Run below command to get the o/p
+
+```
+make quest2
+```
+Below is the op you get:
+
+![](<figs/Q2_Log Price vs Log Carat.png>)
+
+The scatter plot of log-transformed variables ("log_carat" vs. "log_price") shows a clearer linear relationship compared to the original variables
+
+The explained variance score provides an assessment of how well the linear regression model fits the data. In this case, using the logarithmic transformations of "carat" and "price" improved the linearity of the relationship, making the model more appropriate for linear regression. The reported explained variance score gives us insight into the performance of this model in capturing the variation in "log_price" explained by "log_carat".
+
+This approach demonstrates how logarithmic transformations can enhance the suitability of linear regression models for variables that exhibit non-linear relationships, such as those found in the diamonds dataset.
 
 ## Question 3
 
@@ -38,10 +67,37 @@ def simple_train_test_split(X, y, test_size=.3):
     return X_train, X_test, y_train, y_test
 ```
 
+## Solution
+
+Run below command to get the o/p:
+
+```
+make quest3
+```
+
+Below is the o/p:
+
+![alt text](figs/Q3.png)
+
+![figs/image.png](figs/image.png)
+
+
 ## Question 4
 
 Use one-hot encoding to find the best 2-input model by adding either "cut", "color" or "clarity" as a second predictor along with "log(carat)" to model "log(price)". Which 2-input model has the best performance? Report the training score
 with explained variance metric, using the entire dataset for both training and evaluation. Compare to the corresponding univariate model in question 2. What's the ".shape" of the feature matrix for the "best" model?
+
+## Solution
+
+Run below command to get the o/p:
+
+```
+make quest4
+```
+
+Below is the o/p:
+
+![alt text](q4.png)
 
 ## Question 5
 
@@ -49,3 +105,15 @@ Repeat the analysis of Question 4, this time using 5-fold cross validation.
 Report both train and test scores (average +/- standard deviation).
 Compare results here with those of Question 4.
 Discuss results and explain any significant differences with Question 4.
+
+## Solution
+
+Run below command to get the o/p:
+
+```
+make quest5
+```
+
+Below is the o/p:
+
+figs/q5.png

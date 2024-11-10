@@ -1,0 +1,12 @@
+name: dev
+channels:
+  - conda-forge
+dependencies:
+  - seaborn
+  - python
+  - pandas
+  - numpy
+  - scikit-learn
+  - matplotlib
+  - make
+  - git
