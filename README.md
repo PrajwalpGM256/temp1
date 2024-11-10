@@ -10,6 +10,8 @@ You can get the data directly from the "data-raw" directory in the [ggplot2 gith
 Visualize the relationship between "price" and "carat" and comment on the type of model that 
 might be appropriate for modeling their relationship.
 
+
+
 ## Question 2
 
 Investigate logarithmic transformations to see if you can find a more appropriate relationship

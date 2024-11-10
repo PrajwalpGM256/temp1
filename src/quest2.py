@@ -1,5 +1,12 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import explained_variance_score
+
+diamonds_url = "https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv"
+diamonds = pd.read_csv(diamonds_url)
 
 # Log transformation of carat and price
 diamonds['log_carat'] = np.log(diamonds['carat'])
@@ -11,6 +18,7 @@ sns.scatterplot(x='log_carat', y='log_price', data=diamonds)
 plt.title('Log Price vs. Log Carat')
 plt.xlabel('Log Carat')
 plt.ylabel('Log Price')
+plt.savefig('figs/Q2_Log Price vs Log Carat')
 plt.show()
 
 # Create the model

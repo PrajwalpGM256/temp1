@@ -85,4 +85,6 @@ plt.ylabel('Log Price')
 plt.legend()
 
 plt.tight_layout()
+
+plt.savefig('figs/Q3')
 plt.show()

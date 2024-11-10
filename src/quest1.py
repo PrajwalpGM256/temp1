@@ -13,5 +13,6 @@ sns.scatterplot(x='carat', y='price', data=diamonds)
 plt.title('Price vs. Carat')
 plt.xlabel('Carat')
 plt.ylabel('Price')
+plt.savefig('figs/Q1_Price vs Carat')
 plt.show()
 
