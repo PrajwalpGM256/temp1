@@ -1,90 +1,101 @@
-def simple_train_test_split(X, y, test_size=.3):
-    n_training_samples = int((1.0 - test_size) * X.shape[0])
-
-    X_train = X[:n_training_samples,:]
-    y_train = y[:n_training_samples]
-
-    X_test = X[n_training_samples:,:]
-    y_test = y[n_training_samples:]
-
-    return X_train, X_test, y_train, y_test
-
+# Import necessary libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import os
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import explained_variance_score
 from sklearn.model_selection import train_test_split
 
-# Define simple_train_test_split function
-def simple_train_test_split(X, y, test_size=.3):
+# Ensure the figs directory exists
+os.makedirs('figs', exist_ok=True)
+
+# Load the dataset
+df = pd.read_csv('data/diamonds.csv')
+
+# Apply logarithmic transformation to price and carat
+df['log_price'] = np.log(df['price'])
+df['log_carat'] = np.log(df['carat'])
+
+# Prepare the feature matrix X and target vector y
+X = df[['log_carat']].values  # Feature matrix (as a 2D array)
+y = df['log_price'].values    # Target vector
+
+# Define the simple_train_test_split function
+def simple_train_test_split(X, y, test_size=0.3):
     n_training_samples = int((1.0 - test_size) * X.shape[0])
-    X_train = X[:n_training_samples,:]
+    X_train = X[:n_training_samples, :]
     y_train = y[:n_training_samples]
-    X_test = X[n_training_samples:,:]
+    X_test = X[n_training_samples:, :]
     y_test = y[n_training_samples:]
     return X_train, X_test, y_train, y_test
 
-# Load the diamonds dataset
-diamonds_url = "https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv"
-diamonds = pd.read_csv(diamonds_url)
-
-# Apply logarithmic transformation
-diamonds['log_carat'] = np.log(diamonds['carat'])
-diamonds['log_price'] = np.log(diamonds['price'])
-
-# Prepare data for modeling
-X = diamonds[['log_carat']].values
-y = diamonds['log_price'].values
-
-# Using simple_train_test_split function
+# Split the data using the simple_train_test_split function
 X_train_simple, X_test_simple, y_train_simple, y_test_simple = simple_train_test_split(X, y, test_size=0.3)
 
-# Using sklearn's train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Split the data using sklearn's train_test_split function
+X_train_sklearn, X_test_sklearn, y_train_sklearn, y_test_sklearn = train_test_split(
+    X, y, test_size=0.3, random_state=42)
 
-# Initialize linear regression models
+# Create and train the linear regression model using simple_train_test_split data
 model_simple = LinearRegression()
-model_sklearn = LinearRegression()
-
-# Fit models
 model_simple.fit(X_train_simple, y_train_simple)
-model_sklearn.fit(X_train, y_train)
 
-# Predictions
+# Predict and evaluate using the simple_train_test_split test data
 y_pred_simple = model_simple.predict(X_test_simple)
-y_pred_sklearn = model_sklearn.predict(X_test)
+evs_simple = explained_variance_score(y_test_simple, y_pred_simple)
+print(f'Explained Variance Score with simple_train_test_split: {evs_simple:.4f}')
 
-# Calculate explained variance score
-explained_variance_simple = explained_variance_score(y_test_simple, y_pred_simple)
-explained_variance_sklearn = explained_variance_score(y_test, y_pred_sklearn)
+# Create and train the linear regression model using sklearn's train_test_split data
+model_sklearn = LinearRegression()
+model_sklearn.fit(X_train_sklearn, y_train_sklearn)
 
-# Print explained variance scores
-print(f"Explained Variance Score (Simple Train-Test Split): {explained_variance_simple:.4f}")
-print(f"Explained Variance Score (Sklearn Train-Test Split): {explained_variance_sklearn:.4f}")
+# Predict and evaluate using sklearn's train_test_split test data
+y_pred_sklearn = model_sklearn.predict(X_test_sklearn)
+evs_sklearn = explained_variance_score(y_test_sklearn, y_pred_sklearn)
+print(f'Explained Variance Score with sklearn\'s train_test_split: {evs_sklearn:.4f}')
 
-# Visualization
+# Visualization to compare predictions vs actual values for both methods
 plt.figure(figsize=(12, 6))
 
-# Plotting results from simple_train_test_split
+# Plot for simple_train_test_split
 plt.subplot(1, 2, 1)
-plt.scatter(X_test_simple, y_test_simple, color='blue', label='Actual')
-plt.plot(X_test_simple, y_pred_simple, color='red', linewidth=2, label='Predicted (Simple Split)')
-plt.title('Simple Train-Test Split')
-plt.xlabel('Log Carat')
-plt.ylabel('Log Price')
-plt.legend()
+sns.scatterplot(x=y_test_simple, y=y_pred_simple, alpha=0.5, color='blue')
+plt.plot([y_test_simple.min(), y_test_simple.max()], [y_test_simple.min(), y_test_simple.max()], 'r--')
+plt.title('Predicted vs Actual (Simple Split)')
+plt.xlabel('Actual log(Price)')
+plt.ylabel('Predicted log(Price)')
 
-# Plotting results from sklearn train_test_split
+# Plot for sklearn's train_test_split
 plt.subplot(1, 2, 2)
-plt.scatter(X_test, y_test, color='blue', label='Actual')
-plt.plot(X_test, y_pred_sklearn, color='green', linewidth=2, label='Predicted (Sklearn Split)')
-plt.title('Sklearn Train-Test Split')
-plt.xlabel('Log Carat')
-plt.ylabel('Log Price')
-plt.legend()
+sns.scatterplot(x=y_test_sklearn, y=y_pred_sklearn, alpha=0.5, color='green')
+plt.plot([y_test_sklearn.min(), y_test_sklearn.max()], [y_test_sklearn.min(), y_test_sklearn.max()], 'r--')
+plt.title('Predicted vs Actual (Sklearn Split)')
+plt.xlabel('Actual log(Price)')
+plt.ylabel('Predicted log(Price)')
 
 plt.tight_layout()
-
-plt.savefig('figs/Q3')
+plt.savefig('figs/q3_predicted_vs_actual_comparison.png')
 plt.show()
+plt.close()
+
+# Additional visualization of residuals
+plt.figure(figsize=(12, 6))
+
+# Residuals for simple_train_test_split
+plt.subplot(1, 2, 1)
+sns.histplot(y_test_simple - y_pred_simple, kde=True, color='blue')
+plt.title('Residuals Distribution (Simple Split)')
+plt.xlabel('Residuals')
+
+# Residuals for sklearn's train_test_split
+plt.subplot(1, 2, 2)
+sns.histplot(y_test_sklearn - y_pred_sklearn, kde=True, color='green')
+plt.title('Residuals Distribution (Sklearn Split)')
+plt.xlabel('Residuals')
+
+plt.tight_layout()
+plt.show()
+plt.savefig('figs/q3_residuals_comparison.png')
+plt.close()

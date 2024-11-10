@@ -1,57 +1,113 @@
+# Import necessary libraries
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import cross_val_score
 from sklearn.metrics import explained_variance_score
+from sklearn.model_selection import KFold
+import os
 
-# Load the diamonds dataset
-diamonds_url = "https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv"
-diamonds = pd.read_csv(diamonds_url)
+# Ensure the figs directory exists
+os.makedirs('figs', exist_ok=True)
 
-# Apply logarithmic transformation
-diamonds['log_carat'] = np.log(diamonds['carat'])
-diamonds['log_price'] = np.log(diamonds['price'])
+# Load the dataset
+df = pd.read_csv('data/diamonds.csv')
 
-# Select predictors and target
-X = diamonds[['log_carat']]
-y = diamonds['log_price']
+# Apply logarithmic transformation to price and carat
+df['log_price'] = np.log(df['price'])
+df['log_carat'] = np.log(df['carat'])
 
-# Categorical features for encoding
-cat_features = ['cut', 'color', 'clarity']
+# Prepare the target variable
+y = df['log_price'].values  # Convert to NumPy array
 
-# Initialize variables to store scores
-train_scores = []
-test_scores = []
+# List of categorical variables to test
+categorical_vars = ['cut', 'color', 'clarity']
 
-# Iterate over each categorical feature as the second predictor
-for feature_name in cat_features:
-    # Prepare the feature matrix with one-hot encoding
-    ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(drop='first'), [feature_name])], remainder='passthrough')
-    X_encoded = ct.fit_transform(diamonds[[feature_name, 'log_carat']])
+# Initialize K-Fold cross-validation
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
-    # Initialize linear regression model
-    model = LinearRegression()
+# Univariate model from Question 2 for comparison
+X_univariate = df[['log_carat']].values
+model_univariate = LinearRegression()
 
-    # Perform 5-fold cross-validation
-    cv_scores = cross_val_score(model, X_encoded, y, cv=5, scoring='explained_variance')
+# Lists to store scores
+univariate_train_scores = []
+univariate_test_scores = []
 
-    # Track train and test scores
-    train_scores.append(cv_scores.mean())
-    test_scores.append(cv_scores.std())
+# Perform cross-validation for univariate model
+for train_index, test_index in kf.split(X_univariate):
+    X_train, X_test = X_univariate[train_index], X_univariate[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+    
+    model_univariate.fit(X_train, y_train)
+    y_train_pred = model_univariate.predict(X_train)
+    y_test_pred = model_univariate.predict(X_test)
+    
+    train_score = explained_variance_score(y_train, y_train_pred)
+    test_score = explained_variance_score(y_test, y_test_pred)
+    
+    univariate_train_scores.append(train_score)
+    univariate_test_scores.append(test_score)
 
-    # Print results for each model
-    print(f"Cross-validation Explained Variance Scores (Log Carat + {feature_name}):")
-    for fold_idx, score in enumerate(cv_scores):
-        print(f"Fold {fold_idx + 1}: {score:.4f}")
-    print(f"Average Train Score: {cv_scores.mean():.4f} +/- {cv_scores.std():.4f}")
-    print()
+# Report univariate model scores
+print("Univariate Model (log_carat):")
+print(f"Train Explained Variance: {np.mean(univariate_train_scores):.4f} ± {np.std(univariate_train_scores):.4f}")
+print(f"Test Explained Variance: {np.mean(univariate_test_scores):.4f} ± {np.std(univariate_test_scores):.4f}\n")
 
-# Find the best performing model based on average train score
-best_index = np.argmax(train_scores)
-best_feature_name = cat_features[best_index]
+# Dictionary to store results for each model
+results = {}
 
-# Report the best performing model
-print(f"Best performing 2-input model: Log Carat + {best_feature_name}")
-print(f"Average Train Score: {train_scores[best_index]:.4f} +/- {test_scores[best_index]:.4f}")
+# Iterate over categorical variables
+for var in categorical_vars:
+    # One-hot encode the categorical variable
+    df_encoded = pd.get_dummies(df[var], prefix=var)
+    
+    # Combine log_carat and the encoded variable
+    X = pd.concat([df['log_carat'], df_encoded], axis=1).values  # Convert to NumPy array
+    
+    # Initialize lists to store scores
+    train_scores = []
+    test_scores = []
+    
+    # Perform cross-validation
+    for train_index, test_index in kf.split(X):
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        
+        # Fit linear regression model
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+        
+        # Predict on training and testing data
+        y_train_pred = model.predict(X_train)
+        y_test_pred = model.predict(X_test)
+        
+        # Calculate explained variance scores
+        train_score = explained_variance_score(y_train, y_train_pred)
+        test_score = explained_variance_score(y_test, y_test_pred)
+        
+        train_scores.append(train_score)
+        test_scores.append(test_score)
+    
+    # Store the results
+    results[var] = {
+        'train_mean': np.mean(train_scores),
+        'train_std': np.std(train_scores),
+        'test_mean': np.mean(test_scores),
+        'test_std': np.std(test_scores),
+        'X_shape': X.shape
+    }
+    
+    # Report scores for this model
+    print(f'Model with "log_carat" and "{var}":')
+    print(f"Train Explained Variance: {results[var]['train_mean']:.4f} ± {results[var]['train_std']:.4f}")
+    print(f"Test Explained Variance: {results[var]['test_mean']:.4f} ± {results[var]['test_std']:.4f}\n")
+
+# Identify the best model based on average test score
+best_var = max(results, key=lambda x: results[x]['test_mean'])
+best_result = results[best_var]
+
+print("Best 2-input model using cross-validation:")
+print(f'Variable added: {best_var}')
+print(f"Train Explained Variance: {best_result['train_mean']:.4f} ± {best_result['train_std']:.4f}")
+print(f"Test Explained Variance: {best_result['test_mean']:.4f} ± {best_result['test_std']:.4f}")
+print(f'Feature matrix shape: {best_result["X_shape"]}')

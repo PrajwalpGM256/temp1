@@ -1,60 +1,62 @@
+# Import necessary libraries
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
 from sklearn.metrics import explained_variance_score
+import os
 
-# Load the diamonds dataset
-diamonds_url = "https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv"
-diamonds = pd.read_csv(diamonds_url)
+# Ensure the figs directory exists
+os.makedirs('figs', exist_ok=True)
 
-# Apply logarithmic transformation
-diamonds['log_carat'] = np.log(diamonds['carat'])
-diamonds['log_price'] = np.log(diamonds['price'])
+# Load the dataset
+df = pd.read_csv('data/diamonds.csv')
 
-# Select predictors and target
-X = diamonds[['log_carat']]
-y = diamonds['log_price']
+# Apply logarithmic transformation to price and carat
+df['log_price'] = np.log(df['price'])
+df['log_carat'] = np.log(df['carat'])
 
-# Categorical features for encoding
-cat_features = ['cut', 'color', 'clarity']
+# Prepare the target variable
+y = df['log_price']
 
-# Initialize variables to track the best model
-best_score = -np.inf
-best_model = None
-best_feature_names = None
-best_feature_matrix_shape = None
+# List to store explained variance scores
+scores = []
 
-# Iterate over each categorical feature as the second predictor
-for feature_name in cat_features:
-    # Prepare the feature matrix with one-hot encoding
-    ct = ColumnTransformer(transformers=[('encoder', OneHotEncoder(drop='first'), [feature_name])], remainder='passthrough')
-    X_encoded = ct.fit_transform(diamonds[[feature_name, 'log_carat']])
+# List of categorical variables to test
+categorical_vars = ['cut', 'color', 'clarity']
 
-    # Initialize linear regression model
+# Univariate model from Question 2 for comparison
+X_univariate = df[['log_carat']]
+model_univariate = LinearRegression()
+model_univariate.fit(X_univariate, y)
+y_pred_univariate = model_univariate.predict(X_univariate)
+evs_univariate = explained_variance_score(y, y_pred_univariate)
+print(f'Explained Variance Score for Univariate Model: {evs_univariate:.4f}')
+
+# Iterate over categorical variables
+for var in categorical_vars:
+    # One-hot encode the categorical variable
+    df_encoded = pd.get_dummies(df[var], prefix=var)
+    
+    # Combine log_carat and the encoded variable
+    X = pd.concat([df['log_carat'], df_encoded], axis=1)
+    
+    # Fit linear regression model
     model = LinearRegression()
-
-    # Fit the model
-    model.fit(X_encoded, y)
-
-    # Predictions
-    y_pred = model.predict(X_encoded)
-
+    model.fit(X, y)
+    
+    # Predict on the training data
+    y_pred = model.predict(X)
+    
     # Calculate explained variance score
-    explained_variance = explained_variance_score(y, y_pred)
-
-    # Print results for each model
-    print(f"Explained Variance Score (Log Carat + {feature_name}): {explained_variance:.4f}")
-
-    # Track the best performing model
-    if explained_variance > best_score:
-        best_score = explained_variance
-        best_model = model
-        best_feature_names = [feature_name, 'log_carat']
-        best_feature_matrix_shape = X_encoded.shape
-
-# Report the best performing model
-print(f"\nBest performing 2-input model: Log Carat + {best_feature_names} with Explained Variance Score: {best_score:.4f}")
-print(f"Feature matrix shape of the best model: {best_feature_matrix_shape}")
-
+    evs = explained_variance_score(y, y_pred)
+    print(f'Explained Variance Score with "log_carat" and "{var}": {evs:.4f}')
+    
+    # Store the results
+    scores.append({'variable': var, 'evs': evs, 'X_shape': X.shape})
+    
+# Find the best model
+best_model = max(scores, key=lambda x: x['evs'])
+print("\nBest 2-input model:")
+print(f'Variable added: {best_model["variable"]}')
+print(f'Explained Variance Score: {best_model["evs"]:.4f}')
+print(f'Feature matrix shape: {best_model["X_shape"]}')
