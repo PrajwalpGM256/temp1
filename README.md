@@ -5,12 +5,6 @@
 Use the [diamonds dataset](https://ggplot2.tidyverse.org/reference/diamonds.html) to answer the questions below.
 You can get the data directly from the "data-raw" directory in the [ggplot2 github repo](https://github.com/tidyverse/ggplot2/).
 
-## Question 1
-
-Visualize the relationship between "price" and "carat" and comment on the type of model that 
-might be appropriate for modeling their relationship.
-
-## Solution
 
 ### Run below command to download the data.
 
@@ -25,6 +19,13 @@ conda env create --name dev -f dev.yml
 conda activate dev
 ```
 
+
+## Question 1
+
+Visualize the relationship between "price" and "carat" and comment on the type of model that 
+might be appropriate for modeling their relationship.
+
+## Solution
 
 ### Run below command to get the o/p
 
