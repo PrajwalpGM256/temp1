@@ -96,6 +96,6 @@ plt.title('Residuals Distribution (Sklearn Split)')
 plt.xlabel('Residuals')
 
 plt.tight_layout()
-plt.show()
 plt.savefig('figs/q3_residuals_comparison.png')
+plt.show()
 plt.close()

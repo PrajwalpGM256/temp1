@@ -19,8 +19,9 @@ sns.scatterplot(data=df, x='carat', y='price', alpha=0.5)
 plt.title('Price vs. Carat (Original Scale)')
 plt.xlabel('Carat')
 plt.ylabel('Price')
-plt.show()
+
 plt.savefig('figs/q2_price_vs_carat_original.png')
+plt.show()
 plt.close()
 
 # Apply logarithmic transformation to price and carat
@@ -33,8 +34,8 @@ sns.scatterplot(data=df, x='log_carat', y='log_price', alpha=0.5, color='orange'
 plt.title('Log(Price) vs. Log(Carat)')
 plt.xlabel('Log(Carat)')
 plt.ylabel('Log(Price)')
-plt.show()
 plt.savefig('figs/q2_log_price_vs_log_carat.png')
+plt.show()
 plt.close()
 
 # Prepare data for linear regression on original scale
