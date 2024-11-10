@@ -97,7 +97,7 @@ make quest4
 
 Below is the o/p:
 
-![alt text](q4.png)
+![alt text](figs/q4.png)
 
 ## Question 5
 
@@ -116,4 +116,4 @@ make quest5
 
 Below is the o/p:
 
-figs/q5.png
+![alt text](figs/q5.png)
